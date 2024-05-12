@@ -1,0 +1,199 @@
+#include <iostream>
+#include <string>
+#include <map>
+#include <vector>
+
+using namespace std;
+
+// Structure to hold borrowing history
+struct Transaction {
+    string bookTitle;
+    string userID;
+    string userName;
+    string status;
+};
+
+// Function prototypes
+void borrowBook(map<string, string>& library, map<string, string>& users, vector<Transaction>& history);
+void returnBook(map<string, string>& library, vector<Transaction>& history);
+void searchBook(const map<string, string>& library, const vector<Transaction>& history);
+void showAllBooks(const map<string, string>& library);
+void libraryHistory(const vector<Transaction>& history);
+
+int main() {
+    map<string, string> library = {
+        {"book1", "author1"}, {"book2", "author2"}, {"book3", "author3"}, {"book4", "author4"}, {"book5", "author5"},
+        {"book6", "author6"}, {"book7", "author7"}, {"book8", "author8"}, {"book9", "author9"}, {"book10", "author10"},
+        {"book11", "author11"}, {"book12", "author12"}, {"book13", "author13"}, {"book14", "author14"}, {"book15", "author15"},
+        {"book16", "author16"}, {"book17", "author17"}, {"book18", "author18"}, {"book19", "author19"}, {"book20", "author20"}
+    };
+
+    map<string, string> users = {
+        {"111", "name1"}, {"222", "name2"}, {"333", "name3"}
+    };
+
+    vector<Transaction> history;
+
+    int choice;
+    do {
+        cout << "\n--- Library System ---" << endl
+             << "1. Borrow Book" << endl
+             << "2. Return Book" << endl
+             << "3. Search for Books" << endl
+             << "4. Library History" << endl
+             << "5. Exit" << endl
+             << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                borrowBook(library, users, history);
+                break;
+            case 2:
+                returnBook(library, history);
+                break;
+            case 3: {
+                cout << "1. Search for a specific book" << endl
+                     << "2. Show all books" << endl
+                     << "Enter your choice: ";
+                int searchChoice;
+                cin >> searchChoice;
+                switch (searchChoice) {
+                    case 1:
+                        searchBook(library, history);
+                        break;
+                    case 2:
+                        showAllBooks(library);
+                        break;
+                    default:
+                        cout << "Invalid choice. Please enter either 1 or 2." << endl;
+                }
+                break;
+            }
+            case 4:
+                libraryHistory(history);
+                break;
+            case 5:
+                cout << "Exiting program. Goodbye!" << endl;
+                break;
+            default:
+                cout << "Invalid choice. Please enter a number between 1 and 5." << endl;
+        }
+    } while (choice != 5);
+
+    return 0;
+}
+
+void borrowBook(map<string, string>& library, map<string, string>& users, vector<Transaction>& history) {
+    string id, name, searchTerm;
+    cout << "\nEnter ID number or user name: ";
+    cin >> id;
+    if (users.find(id) == users.end()) {
+        cout << "Invalid user / Unregistered User" << endl
+             << "Register User ID No: ";
+        cin >> id;
+        cout << "Name of user: ";
+        cin.ignore();
+        getline(cin, name);
+        users[id] = name;
+    } else {
+        name = users[id];
+    }
+    cin.ignore();
+    cout << "\nEnter Book title or author: ";
+    getline(cin, searchTerm);
+
+    // Check if the book is currently borrowed
+    for (const auto& entry : history) {
+        if (entry.bookTitle == searchTerm && entry.status != "Returned") {
+            cout << "The book is currently borrowed. Please try again later." << endl;
+            return;
+        }
+    }
+
+    bool found = false;
+    for (auto& entry : library) {
+        if (entry.first == searchTerm || entry.second == searchTerm) {
+            cout << "You have successfully borrowed the book." << endl;
+            // Add transaction to history
+            history.push_back({entry.first, id, name, "Borrowed"});
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        cout << "Book is not available." << endl;
+    }
+}
+
+void returnBook(map<string, string>& library, vector<Transaction>& history) {
+    string searchTerm;
+    cout << "\nEnter Title or Author of the book: ";
+    cin.ignore();
+    getline(cin, searchTerm);
+
+    bool found = false;
+    for (auto& entry : history) {
+        if (entry.bookTitle == searchTerm && entry.status != "Returned") {
+            cout << "Thank you for returning the book!" << endl;
+            // Update the status of the book in history to "Returned"
+            entry.status = "Returned";
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        cout << "Book not found in the history." << endl;
+    }
+}
+
+void searchBook(const map<string, string>& library, const vector<Transaction>& history) {
+    string searchTerm;
+    cout << "\nEnter Title of the Book or Author: ";
+    cin.ignore();
+    getline(cin, searchTerm);
+
+    bool foundInLibrary = false;
+    bool foundBorrowed = false;
+
+    // Check if the book is available in the library
+    for (const auto& entry : library) {
+        if (entry.first == searchTerm || entry.second == searchTerm) {
+            cout << "Book is available in the library." << endl;
+            foundInLibrary = true;
+            break;
+        }
+    }
+
+    // Check if the book is currently borrowed
+    for (const auto& transaction : history) {
+        if (transaction.bookTitle == searchTerm && transaction.status == "Borrowed") {
+            cout << "Book is currently borrowed." << endl;
+            foundBorrowed = true;
+            break;
+        }
+    }
+
+    // If the book is not found in library or borrowed, it's not available
+    if (!foundInLibrary && !foundBorrowed) {
+        cout << "Book is not available." << endl;
+    }
+}
+
+void showAllBooks(const map<string, string>& library) {
+    cout << "\n--- All Books ---" << endl;
+    for (const auto& entry : library) {
+        cout << entry.first << " by " << entry.second << endl;
+    }
+}
+
+void libraryHistory(const vector<Transaction>& history) {
+    cout << "\n--- Library History ---" << endl;
+    for (const auto& entry : history) {
+        cout << "Borrower ID Number: " << entry.userID << endl
+             << "Name of Borrower: " << entry.userName << endl
+             << "Title of the Book: " << entry.bookTitle << endl
+             << "Status: " << entry.status << endl
+             << endl;
+    }
+}
