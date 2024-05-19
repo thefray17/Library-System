@@ -1,4 +1,4 @@
-//BUGS: after registration of user you cant borrow a book. fix by separating the user registration and add a prompt when user is unregistered for user accessibility.
+//BUGS: after registration of user you cant borrow a book. fixed by separating the user registration and add a prompt when user is unregistered for user accessibility.
 //Updates: Prompts for each section for user accessibility. Resets to menu after finishing action for each section for cleaner interface.
 
 
