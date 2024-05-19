@@ -1,11 +1,14 @@
+//BUGS: after registration of user you cant borrow a book. fix by seperating the user registration and add a prompt when user is unregistered for user accesability.
+//Updates: Prompts for each sections for user accesability. Resets to menu after finishing action for each section for cleaner interface.
+
 #include <iostream>
 #include <string>
 #include <map>
 #include <vector>
+#include <limits>
 
 using namespace std;
 
-// Structure to hold borrowing history
 struct Transaction {
     string bookTitle;
     string userID;
@@ -13,12 +16,13 @@ struct Transaction {
     string status;
 };
 
-// Function prototypes
 void borrowBook(map<string, string>& library, map<string, string>& users, vector<Transaction>& history);
 void returnBook(map<string, string>& library, vector<Transaction>& history);
 void searchBook(const map<string, string>& library, const vector<Transaction>& history);
 void showAllBooks(const map<string, string>& library);
 void libraryHistory(const vector<Transaction>& history);
+void registerUser(map<string, string>& users);
+void clearScreen();
 
 int main() {
     map<string, string> library = {
@@ -36,12 +40,14 @@ int main() {
 
     int choice;
     do {
+        clearScreen();
         cout << "\n--- Library System ---" << endl
              << "1. Borrow Book" << endl
              << "2. Return Book" << endl
              << "3. Search for Books" << endl
              << "4. Library History" << endl
-             << "5. Exit" << endl
+             << "5. Register User" << endl
+             << "6. Exit" << endl
              << "Enter your choice: ";
         cin >> choice;
 
@@ -67,6 +73,7 @@ int main() {
                         break;
                     default:
                         cout << "Invalid choice. Please enter either 1 or 2." << endl;
+                        break;
                 }
                 break;
             }
@@ -74,110 +81,129 @@ int main() {
                 libraryHistory(history);
                 break;
             case 5:
+                registerUser(users);
+                break;
+            case 6:
                 cout << "Exiting program. Goodbye!" << endl;
                 break;
             default:
-                cout << "Invalid choice. Please enter a number between 1 and 5." << endl;
+                cout << "Invalid choice. Please enter a number between 1 and 6." << endl;
+                break;
         }
-    } while (choice != 5);
+    } while (choice != 6);
 
     return 0;
 }
 
 void borrowBook(map<string, string>& library, map<string, string>& users, vector<Transaction>& history) {
-    string id, name, searchTerm;
-    cout << "\nEnter ID number or user name: ";
-    cin >> id;
-    if (users.find(id) == users.end()) {
-        cout << "Invalid user / Unregistered User" << endl
-             << "Register User ID No: ";
+    char again;
+    do {
+        string id, name, searchTerm;
+        cout << "\nEnter ID number: ";
         cin >> id;
-        cout << "Name of user: ";
+        if (users.find(id) == users.end()) {
+            cout << "User is not registered. Do you want to register? (Y/N): ";
+            char registerChoice;
+            cin >> registerChoice;
+            if (toupper(registerChoice) == 'Y') {
+                registerUser(users);
+                continue;
+            } else {
+                return;
+            }
+        } else {
+            name = users[id];
+        }
         cin.ignore();
-        getline(cin, name);
-        users[id] = name;
-    } else {
-        name = users[id];
-    }
-    cin.ignore();
-    cout << "\nEnter Book title or author: ";
-    getline(cin, searchTerm);
+        cout << "\nEnter Book title or author: ";
+        getline(cin, searchTerm);
 
-    // Check if the book is currently borrowed
-    for (const auto& entry : history) {
-        if (entry.bookTitle == searchTerm && entry.status != "Returned") {
-            cout << "The book is currently borrowed. Please try again later." << endl;
-            return;
+        for (const auto& entry : history) {
+            if (entry.bookTitle == searchTerm && entry.status != "Returned") {
+                cout << "The book is currently borrowed. Please try again later." << endl;
+                return;
+            }
         }
-    }
 
-    bool found = false;
-    for (auto& entry : library) {
-        if (entry.first == searchTerm || entry.second == searchTerm) {
-            cout << "You have successfully borrowed the book." << endl;
-            // Add transaction to history
-            history.push_back({entry.first, id, name, "Borrowed"});
-            found = true;
-            break;
+        bool found = false;
+        for (auto& entry : library) {
+            if (entry.first == searchTerm || entry.second == searchTerm) {
+                cout << "You have successfully borrowed the book." << endl;
+                history.push_back({entry.first, id, name, "Borrowed"});
+                found = true;
+                break;
+            }
         }
-    }
-    if (!found) {
-        cout << "Book is not available." << endl;
-    }
+        if (!found) {
+            cout << "Book is not available." << endl;
+        }
+
+        cout << "\nDo you want to borrow another book? (Y/N): ";
+        cin >> again;
+    } while (toupper(again) == 'Y');
 }
 
-void returnBook(map<string, string>& library, vector<Transaction>& history) {
-    string searchTerm;
-    cout << "\nEnter Title or Author of the book: ";
-    cin.ignore();
-    getline(cin, searchTerm);
 
-    bool found = false;
-    for (auto& entry : history) {
-        if (entry.bookTitle == searchTerm && entry.status != "Returned") {
-            cout << "Thank you for returning the book!" << endl;
-            // Update the status of the book in history to "Returned"
-            entry.status = "Returned";
-            found = true;
-            break;
+void returnBook(map<string, string>& library, vector<Transaction>& history) {
+    char again;
+    do {
+        string searchTerm;
+        cout << "Enter Title or Author of the book: ";
+        cin.ignore();
+        getline(cin, searchTerm);
+
+        bool found = false;
+        for (auto& entry : history) {
+            if (entry.bookTitle == searchTerm && entry.status != "Returned") {
+                cout << "Thank you for returning the book!" << endl;
+                entry.status = "Returned";
+                found = true;
+                break;
+            }
         }
-    }
-    if (!found) {
-        cout << "Book not found in the history." << endl;
-    }
+        if (!found) {
+            cout << "Book not found in the history." << endl;
+        }
+
+        cout << "\nDo you want to return another book? (Y/N): ";
+        cin >> again;
+    } while (toupper(again) == 'Y');
 }
 
 void searchBook(const map<string, string>& library, const vector<Transaction>& history) {
-    string searchTerm;
-    cout << "\nEnter Title of the Book or Author: ";
-    cin.ignore();
-    getline(cin, searchTerm);
+    char again;
+    do {
+        string searchTerm;
+        cout << "\nEnter Title of the Book or Author: ";
+        cin.ignore();
+        getline(cin, searchTerm);
 
-    bool foundInLibrary = false;
-    bool foundBorrowed = false;
+        bool foundInLibrary = false;
+        bool foundBorrowed = false;
 
-    // Check if the book is available in the library
-    for (const auto& entry : library) {
-        if (entry.first == searchTerm || entry.second == searchTerm) {
-            cout << "Book is available in the library." << endl;
-            foundInLibrary = true;
-            break;
+        for (const auto& entry : library) {
+            if (entry.first == searchTerm || entry.second == searchTerm) {
+                cout << "Book is available in the library." << endl;
+                foundInLibrary = true;
+                break;
+            }
         }
-    }
 
-    // Check if the book is currently borrowed
-    for (const auto& transaction : history) {
-        if (transaction.bookTitle == searchTerm && transaction.status == "Borrowed") {
-            cout << "Book is currently borrowed." << endl;
-            foundBorrowed = true;
-            break;
+        for (const auto& transaction : history) {
+            if (transaction.bookTitle == searchTerm && transaction.status == "Borrowed") {
+                cout << "Book is currently borrowed." << endl;
+                foundBorrowed = true;
+                break;
+            }
         }
-    }
 
-    // If the book is not found in library or borrowed, it's not available
-    if (!foundInLibrary && !foundBorrowed) {
-        cout << "Book is not available." << endl;
-    }
+        if (!foundInLibrary && !foundBorrowed) {
+            cout << "Book is not available." << endl;
+        }
+
+        cout << "\nDo you want to search for another book? (Y/N): ";
+        cin >> again;
+    } while (toupper(again) == 'Y');
 }
 
 void showAllBooks(const map<string, string>& library) {
@@ -185,6 +211,13 @@ void showAllBooks(const map<string, string>& library) {
     for (const auto& entry : library) {
         cout << entry.first << " by " << entry.second << endl;
     }
+    cout << "\nPress Enter to return to the menu...";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    cin.get();
+}
+
+void clearInputBuffer() {
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
 }
 
 void libraryHistory(const vector<Transaction>& history) {
@@ -196,4 +229,29 @@ void libraryHistory(const vector<Transaction>& history) {
              << "Status: " << entry.status << endl
              << endl;
     }
+    cout << "\nPress Enter to return to the menu...";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    cin.get();
+}
+
+void registerUser(map<string, string>& users) {
+    char again;
+    do {
+        string id, name;
+        cout << "\nRegister User ID No: ";
+        cin >> id;
+        cout << "Name of user: ";
+        cin.ignore();
+        getline(cin, name);
+        users[id] = name;
+        cout << "User registered successfully." << endl;
+
+        cout << "\nDo you want to register another user? (Y/N): ";
+        cin >> again;
+    } while (toupper(again) == 'Y');
+}
+void clearScreen() {
+
+    system("cls");
+
 }
