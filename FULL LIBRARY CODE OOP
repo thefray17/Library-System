@@ -1,0 +1,391 @@
+#include <iostream>
+#include <string>
+#include <map>
+#include <vector>
+#include <limits>
+#include <algorithm>
+
+using namespace std;
+
+class Transaction {
+private:
+    string bookTitle;
+    string userID;
+    string userName;
+    string status;
+
+public:
+    Transaction(const string& title, const string& userId, const string& userName, const string& status)
+        : bookTitle(title), userID(userId), userName(userName), status(status) {}
+
+    string getBookTitle() const { return bookTitle; }
+    string getUserID() const { return userID; }
+    string getUserName() const { return userName; }
+    string getStatus() const { return status; }
+
+    void setStatus(const string& newStatus) { status = newStatus; }
+};
+
+class User {
+private:
+    string id;
+    string name;
+
+public:
+    // Default constructor
+    User() : id(""), name("") {}
+
+    User(const string& userId, const string& userName) : id(userId), name(userName) {}
+
+    string getID() const { return id; }
+    string getName() const { return name; }
+};
+
+class Library {
+private:
+    map<string, string> books;
+    map<string, User> users;
+    vector<Transaction> history;
+
+public:
+    void addBook(const string& title, const string& author) {
+        books[title] = author;
+    }
+
+    void addUser(const string& userId, const string& userName) {
+        users[userId] = User(userId, userName);
+    }
+    void displayBookSummary(const string& title) {
+    cout << "Plot Summary: ";
+    if (title == "To Kill a Mockingbird") {
+        cout << "A young girl's perspective on racial injustice and her father's fight for justice in a small Alabama town.";
+    } else if (title == "1984") {
+        cout << "A dystopian novel depicting a totalitarian regime where thought and individuality are suppressed.";
+    } else if (title == "The Catcher in the Rye") {
+        cout << "A teenager's alienation and search for authenticity in a world he perceives as phony.";
+    } else if (title == "Harry Potter and the Sorcerer's Stone") {
+        cout << "A young boy discovers he's a wizard and attends Hogwarts School of Witchcraft and Wizardry.";
+    } else if (title == "The Lord of the Rings") {
+        cout << "An epic high-fantasy quest to destroy the One Ring and defeat the Dark Lord Sauron.";
+    } else if (title == "Pride and Prejudice") {
+        cout << "Romance and social commentary in 19th-century England, focusing on the Bennet sisters' search for love and marriage.";
+    } else if (title == "The Great Gatsby") {
+        cout << "A look at the Jazz Age and the pursuit of the American Dream through the eyes of Nick Carraway.";
+    } else if (title == "The Hobbit") {
+        cout << "A hobbit's unexpected journey to reclaim treasure from a dragon, filled with adventure and fantastical creatures.";
+    } else if (title == "The Da Vinci Code") {
+        cout << "A symbologist and cryptologist unravel a mystery involving secret societies and hidden messages.";
+    } else if (title == "The Alchemist") {
+        cout << "A shepherd boy's journey to Egypt to find treasure, learning life lessons along the way.";
+    } else if (title == "The Chronicles of Narnia") {
+        cout << "Children's adventures in the magical land of Narnia, facing battles between good and evil.";
+    } else if (title == "The Hunger Games") {
+        cout << "A dystopian society where teenagers fight to the death in an annual televised event.";
+    } else if (title == "The Diary of a Young Girl") {
+        cout << "The true story of Anne Frank, a Jewish girl hiding from the Nazis during World War II.";
+    } else if (title == "Gone with the Wind") {
+        cout << "A Southern belle's survival and romantic entanglements during and after the American Civil War.";
+    } else if (title == "The Little Prince") {
+        cout << "A philosophical tale about a young prince who travels through the universe, learning about life and love.";
+    } else if (title == "A Song of Ice and Fire") {
+        cout << "An epic fantasy series depicting the power struggles of noble families in the Seven Kingdoms.";
+    } else if (title == "The Kite Runner") {
+        cout << "A story of friendship, betrayal, and redemption set against the backdrop of Afghanistan's tumultuous history.";
+    } else if (title == "The Girl with the Dragon Tattoo") {
+        cout << "A journalist and a hacker team up to investigate a decades-old disappearance in a wealthy family.";
+    } else if (title == "The Fault in Our Stars") {
+        cout << "Two teenagers with cancer fall in love and embark on a journey of self-discovery.";
+    } else if (title == "Moby-Dick") {
+        cout << "A whaling ship captain's obsessive quest for revenge against the white whale, Moby Dick.";
+    } else {
+        cout << "Summary not available.";
+    }
+    cout << endl;
+}
+
+    void borrowBook(const string& userId) {
+        clearScreen();
+        cout << "\nBorrow a Book\n";
+
+        char again;
+        do {
+            string id, name, searchTerm;
+            cout << "\nEnter ID number: ";
+            cin >> id;
+
+            auto userIter = users.find(id);
+            if (userIter == users.end()) {
+                cout << "User not registered. Register now? (Y/N): ";
+                char registerChoice;
+                cin >> registerChoice;
+                if (tolower(registerChoice) == 'y') {
+                    registerUser();
+                    continue;
+                } else {
+                    return;
+                }
+            } else {
+                name = userIter->second.getName();
+            }
+
+            cin.ignore();
+            cout << "\nEnter Book title or author: ";
+            getline(cin, searchTerm);
+
+            // Transform to lowercase for case-insensitive search
+            transform(searchTerm.begin(), searchTerm.end(), searchTerm.begin(), ::tolower);
+
+            if (any_of(history.begin(), history.end(), [&](const Transaction& t) {
+                string lowercaseTitle = t.getBookTitle();
+                transform(lowercaseTitle.begin(), lowercaseTitle.end(), lowercaseTitle.begin(), ::tolower);
+                return lowercaseTitle == searchTerm && t.getStatus() != "Returned";
+            })) {
+                cout << "The book is currently borrowed. Try again later." << endl;
+                return;
+            }
+
+            bool found = false;
+            for (const auto& entry : books) {
+                string lowercaseTitle = entry.first;
+                string lowercaseAuthor = entry.second;
+                transform(lowercaseTitle.begin(), lowercaseTitle.end(), lowercaseTitle.begin(), ::tolower);
+                transform(lowercaseAuthor.begin(), lowercaseAuthor.end(), lowercaseAuthor.begin(), ::tolower);
+
+                if (lowercaseTitle == searchTerm || lowercaseAuthor == searchTerm) {
+                    cout << "You have successfully borrowed the book." << endl;
+                    history.push_back({entry.first, id, name, "Borrowed"});
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                cout << "Book is not available." << endl;
+            }
+
+            cout << "\nDo you want to borrow another book? (Y/N): ";
+            cin >> again;
+        } while (tolower(again) == 'y');
+    }
+
+    void returnBook(const string& userId) {
+        clearScreen();
+        cout << "\nReturn a Book\n";
+
+        char again;
+        do {
+            string searchTerm;
+            cout << "Enter Title or Author of the book: ";
+            cin.ignore();
+            getline(cin, searchTerm);
+
+            transform(searchTerm.begin(), searchTerm.end(), searchTerm.begin(), ::tolower);
+            bool found = false;
+            for (auto& entry : history) {
+                string lowercaseTitle = entry.getBookTitle();
+                transform(lowercaseTitle.begin(), lowercaseTitle.end(), lowercaseTitle.begin(), ::tolower);
+
+                if (lowercaseTitle == searchTerm && entry.getStatus() != "Returned") {
+                    cout << "Thank you for returning the book!" << endl;
+                    entry.setStatus("Returned");
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                cout << "No record of this book being borrowed." << endl;
+            }
+
+            cout << "\nDo you want to return another book? (Y/N): ";
+            cin >> again;
+        } while (tolower(again) == 'y');
+    }
+
+  void searchBook(const string& title) {
+        clearScreen();
+        cout << "\nSearch Specific Book\n";
+        string titleToSearch;
+        cout << "Enter the title of the book: ";
+        cin.ignore(); // Clear leftover newline
+        getline(cin, titleToSearch);
+
+        transform(titleToSearch.begin(), titleToSearch.end(), titleToSearch.begin(), ::tolower);
+
+        bool found = false;
+        for (const auto& entry : books) {
+            string lowercaseTitle = entry.first;
+            transform(lowercaseTitle.begin(), lowercaseTitle.end(), lowercaseTitle.begin(), ::tolower);
+
+            if (lowercaseTitle.find(titleToSearch) != string::npos) {
+                cout << "Title: " << entry.first << endl;
+                cout << "Author: " << entry.second << endl;
+                displayBookSummary(entry.first); // Display summary when book is found
+                displayBookStatus(entry.first);
+                found = true;
+            }
+        }
+        if (!found) {
+            cout << "No matching books found." << endl;
+        }
+
+        cout << "Press Enter to return to the menu...";
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    }
+
+    void displayBookStatus(const string& title) {
+        auto it = find_if(history.begin(), history.end(), [&](const Transaction& t) {
+            return t.getBookTitle() == title && t.getStatus() != "Returned";
+        });
+
+        if (it != history.end()) {
+            cout << "Status: Borrowed by " << it->getUserName() << " (User ID: " << it->getUserID() << ")" << endl;
+        } else {
+            cout << "Status: Available" << endl;
+        }
+    }
+
+    void showAllBooks() {
+        clearScreen();
+        cout << "\nShow All Books\n";
+        cout << "List of all books:\n";
+        for (const auto& entry : books) {
+            cout << "Title: " << entry.first << endl;
+            cout << "Author: " << entry.second << endl;
+            displayBookStatus(entry.first);
+            cout << endl;
+        }
+        cout << "Press Enter to return to the main menu...";
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Ignore the newline character
+        cin.get(); // Wait for user to press Enter
+    }
+
+void libraryHistory() {
+    clearScreen();
+    cout << "\nLibrary History\n";
+    cout << "Library Transaction History:\n";
+    for (const auto& transaction : history) {
+        cout << "Book: " << transaction.getBookTitle() << ", User ID: " << transaction.getUserID()
+             << ", User Name: " << transaction.getUserName() << ", Status: " << transaction.getStatus() << endl;
+    }
+    cout << "Press Enter to return to the main menu...";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Ignore the newline character
+    cin.get(); // Wait for user to press Enter
+}
+
+    void registerUser() {
+        clearScreen();
+        cout << "\nRegister User\n";
+        char again;
+        do {
+            string id, name;
+            cout << "\nEnter User ID: ";
+            cin >> id;
+            cout << "Enter User Name: ";
+            cin.ignore(); // Clear newline character from buffer
+            getline(cin, name);
+            users[id] = User(id, name);
+            cout << "User registered successfully." << endl;
+
+            cout << "\nWould you like to register another user? (Y/N): ";
+            cin >> again;
+        } while (tolower(again) == 'y');
+    }
+
+    void clearScreen() {
+        #ifdef _WIN32
+            system("cls");
+        #else
+            system("clear");
+        #endif
+    }
+};
+
+int main() {
+    Library library;
+
+    library.addBook("To Kill a Mockingbird", "Harper Lee");
+    library.addBook("1984", "George Orwell");
+    library.addBook("The Catcher in the Rye", "J.D. Salinger");
+    library.addBook("Harry Potter and the Sorcerer's Stone", "J.K. Rowling");
+    library.addBook("The Lord of the Rings", "J.R.R. Tolkien");
+    library.addBook("Pride and Prejudice", "Jane Austen");
+    library.addBook("The Great Gatsby", "F. Scott Fitzgerald");
+    library.addBook("The Hobbit", "J.R.R. Tolkien");
+    library.addBook("The Da Vinci Code", "Dan Brown");
+    library.addBook("The Alchemist", "Paulo Coelho");
+    library.addBook("The Chronicles of Narnia", "C.S. Lewis");
+    library.addBook("The Hunger Games", "Suzanne Collins");
+    library.addBook("The Diary of a Young Girl", "Anne Frank");
+    library.addBook("Gone with the Wind", "Margaret Mitchell");
+    library.addBook("The Little Prince", "Antoine de Saint-Exupéry");
+    library.addBook("A Song of Ice and Fire", "George R.R. Martin");
+    library.addBook("The Kite Runner", "Khaled Hosseini");
+    library.addBook("The Girl with the Dragon Tattoo", "Stieg Larsson");
+    library.addBook("The Fault in Our Stars", "John Green");
+    library.addBook("Moby-Dick", "Herman Melville");
+
+    library.addUser("111", "name1");
+    library.addUser("222", "name2");
+    library.addUser("333", "name3");
+
+    int choice;
+    do {
+        library.clearScreen();
+        cout << "==============================================" << endl;
+        cout << "       Welcome to Our Library       " << endl;
+        cout << "==============================================" << endl;
+        cout << "1. Borrow Book" << endl;
+        cout << "2. Return Book" << endl;
+        cout << "3. Search for Books" << endl;
+        cout << "4. Library History" << endl;
+        cout << "5. Register User" << endl;
+        cout << "6. Exit" << endl;
+        cout << "==============================================" << endl;
+        cout << "Enter your choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1:
+                library.borrowBook("111"); // Assuming user ID for borrowing
+                break;
+            case 2:
+                library.returnBook("111"); // Assuming user ID for returning
+                break;
+            case 3: {
+                library.clearScreen();
+                cout << "==============================================" << endl;
+                cout << "        Search Books           " << endl;
+                cout << "==============================================" << endl;
+                cout << "1. Search for a specific book" << endl
+                     << "2. Show all books" << endl
+                     << "Enter your choice: ";
+                int searchChoice;
+                cin >> searchChoice;
+                switch (searchChoice) {
+                    case 1:
+                        library.searchBook("111"); // Assuming user ID for searching
+                        break;
+                    case 2:
+                        library.showAllBooks();
+                        break;
+                    default:
+                        cout << "Invalid choice. Please enter either 1 or 2." << endl;
+                        break;
+                }
+                break;
+            }
+            case 4:
+                library.libraryHistory();
+                break;
+            case 5:
+                library.registerUser();
+                break;
+            case 6:
+                cout << "Exiting program. Goodbye!" << endl;
+                break;
+            default:
+                cout << "Invalid choice. Please enter a number between 1 and 6." << endl;
+                break;
+        }
+    } while (choice != 6);
+
+    return 0;
+}
