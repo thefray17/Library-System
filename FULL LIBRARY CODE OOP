@@ -105,8 +105,9 @@ public:
 
     void borrowBook(const string& userId) {
         clearScreen();
-        cout << "\nBorrow a Book\n";
-
+        cout << "+------------------------------------------+" << endl;
+        cout << "|               Borrow Book                |" << endl;
+        cout << "+------------------------------------------+" << endl;
         char again;
         do {
             string id, name, searchTerm;
@@ -169,7 +170,9 @@ public:
 
     void returnBook(const string& userId) {
         clearScreen();
-        cout << "\nReturn a Book\n";
+        cout << "+------------------------------------------+" << endl;
+        cout << "|               Return Book                |" << endl;
+        cout << "+------------------------------------------+" << endl;
 
         char again;
         do {
@@ -202,32 +205,37 @@ public:
 
   void searchBook(const string& title) {
         clearScreen();
-        cout << "\nSearch Specific Book\n";
-        string titleToSearch;
-        cout << "Enter the title of the book: ";
+        cout << "+------------------------------------------+" << endl;
+        cout << "|            Search Specific Book          |" << endl;
+        cout << "+------------------------------------------+" << endl;
+        string searchTerm;
+        cout << "| Search by Title or Author: ";
         cin.ignore(); // Clear leftover newline
-        getline(cin, titleToSearch);
+        getline(cin, searchTerm);
 
-        transform(titleToSearch.begin(), titleToSearch.end(), titleToSearch.begin(), ::tolower);
+        transform(searchTerm.begin(), searchTerm.end(), searchTerm.begin(), ::tolower);
 
         bool found = false;
         for (const auto& entry : books) {
             string lowercaseTitle = entry.first;
+            string lowercaseAuthor = entry.second;
             transform(lowercaseTitle.begin(), lowercaseTitle.end(), lowercaseTitle.begin(), ::tolower);
+            transform(lowercaseAuthor.begin(), lowercaseAuthor.end(), lowercaseAuthor.begin(), ::tolower);
 
-            if (lowercaseTitle.find(titleToSearch) != string::npos) {
-                cout << "Title: " << entry.first << endl;
-                cout << "Author: " << entry.second << endl;
+            if (lowercaseTitle.find(searchTerm) != string::npos || lowercaseAuthor.find(searchTerm) != string::npos) {
+                cout << "| Title: " << entry.first << endl;
+                cout << "| Author: " << entry.second << endl;
                 displayBookSummary(entry.first); // Display summary when book is found
                 displayBookStatus(entry.first);
                 found = true;
             }
         }
         if (!found) {
-            cout << "No matching books found." << endl;
+            cout << "| No matching books found." << endl;
         }
-
-        cout << "Press Enter to return to the menu...";
+        cout << "+------------------------------------------+" << endl;
+        cout << "| Press Enter to return to the menu...     |" << endl;
+        cout << "+------------------------------------------+" << endl;
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
 
@@ -245,31 +253,39 @@ public:
 
     void showAllBooks() {
         clearScreen();
-        cout << "\nShow All Books\n";
-        cout << "List of all books:\n";
+        cout << "+------------------------------------------+" << endl;
+        cout << "|              Show All Books               |" << endl;
+        cout << "+------------------------------------------+" << endl;
+        cout << "| List of all books:                       |" << endl;
         for (const auto& entry : books) {
-            cout << "Title: " << entry.first << endl;
-            cout << "Author: " << entry.second << endl;
+            cout << "| Title: " << entry.first << endl;
+            cout << "| Author: " << entry.second << endl;
             displayBookStatus(entry.first);
             cout << endl;
         }
-        cout << "Press Enter to return to the main menu...";
+        cout << "+------------------------------------------+" << endl;
+        cout << "| Press Enter to return to the main menu...|" << endl;
+        cout << "+------------------------------------------+" << endl;
         cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Ignore the newline character
         cin.get(); // Wait for user to press Enter
     }
-
-void libraryHistory() {
-    clearScreen();
-    cout << "\nLibrary History\n";
-    cout << "Library Transaction History:\n";
-    for (const auto& transaction : history) {
-        cout << "Book: " << transaction.getBookTitle() << ", User ID: " << transaction.getUserID()
-             << ", User Name: " << transaction.getUserName() << ", Status: " << transaction.getStatus() << endl;
+ void libraryHistory() {
+        clearScreen();
+        cout << "+------------------------------------------+" << endl;
+        cout << "|             Library History              |" << endl;
+        cout << "+------------------------------------------+" << endl;
+        cout << endl;
+                for (const auto& transaction : history) {
+            cout << "| Book: " << transaction.getBookTitle() << ", User ID: " << transaction.getUserID()
+                 << "| User Name: " << transaction.getUserName() << ", Status: " << transaction.getStatus() << endl;
+        }
+        cout << endl;
+        cout << "+------------------------------------------+" << endl;
+        cout << "| Press Enter to return to the main menu...|" << endl;
+        cout << "+------------------------------------------+" << endl;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Ignore the newline character
+        cin.get(); // Wait for user to press Enter
     }
-    cout << "Press Enter to return to the main menu...";
-    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Ignore the newline character
-    cin.get(); // Wait for user to press Enter
-}
 
     void registerUser() {
         clearScreen();
