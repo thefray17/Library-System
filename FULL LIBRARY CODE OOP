@@ -398,7 +398,9 @@ int main() {
                 cout << "Exiting program. Goodbye!" << endl;
                 break;
             default:
-                cout << "Invalid choice. Please enter a number between 1 and 6." << endl;
+                cout << "Invalid choice. Please enter a number between 1 and 6. Press Enter" << endl;
+                 cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Ignore the newline character
+        cin.get(); // Wait for user to press Enter
                 break;
         }
     } while (choice != 6);
